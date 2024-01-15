@@ -32,8 +32,8 @@ ebr_drive_number:           db 0                       ; 0x00 floppy 0x80 hdd
                             db 0                       ; reserved
 ebr_signiture:              db 29h
 ebr_volume_id:              db 12h, 34h, 56h, 78h      ; serial number
-ebr_volume_label:           db 'KIWI OS :) '           ; 11 bytes
-ebr_system_id:              db 'FAT12   '              ; 8 bytes
+ebr_volume_label:           db "KIWI OS :) "           ; 11 bytes
+ebr_system_id:              db "FAT12   "              ; 8 bytes
 
 
 start:
@@ -61,27 +61,39 @@ puts:
 	pop si
 	ret
 
+clear_screen:
+	mov ah, 0
+	mov al, 3
+	int 0x10
+
+.done:
+	ret
+
 ; main func
 main:
-	mov ax, 0 
+	mov ax, 0
 	mov ds, ax
 	mov es, ax
 
 	mov ss, ax
 	mov sp, 0x7c00      ; don't overwrite the OS (not a good idea)
 
+	call clear_screen
+
+	; print my_str
+	mov si, msg_boot    ; params for puts
+	call puts           ; call puts
+
+	mov si, msg_read    ; params for puts
+	call puts           ; call puts
+
 
 	; read from floppy
 	mov [ebr_drive_number], dl             
-
 	mov ax, 1           ; LBA = 1
 	mov cl, 1           ; 1 sector to read
 	mov bx, 0x7e00      ; data after bootloader
 	call disk_read
-
-	; print my_str
-	mov si, msg_hi      ; params for puts
-	call puts           ; call puts	
 
 	cli
 	hlt
@@ -185,9 +197,11 @@ disk_reset:
 	popa
 	ret
 
-msg_hi:                 db 'hello world', CRLF, 0
-msg_read_fail:          db 'Failed Disk Read', CRLF, 0
-msg_read_success:       db '<Kiwi> I just read from disk yay', CRLF, 0
+msg_hi:                 db "Hello World", CRLF, 0
+msg_boot:               db "Welcome to the KiwiOS Bootloader!", CRLF, "-------", CRLF, 0
+msg_read:               db "Disk Read (Starting...)", CRLF, 0
+msg_read_fail:          db "Disk Read (Failed)", CRLF, 0
+msg_read_success:       db "Disk Read (Success)", CRLF, 0
 
 times 510-($-$$) db 0
 db 0x55, 0xaa
