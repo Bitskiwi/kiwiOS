@@ -324,7 +324,7 @@ disk_reset:
     ret
 
 
-msg_loading:            db 'loading...', CRLF, 0
+msg_loading:            db '[loading...]', CRLF, 0
 msg_read_failed:        db 'disk :(', CRLF, 0
 msg_kernel_not_found:   db 'kernel :(', CRLF, 0
 file_kernel_bin:        db 'KERNEL  BIN'
