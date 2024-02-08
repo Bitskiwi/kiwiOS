@@ -13,7 +13,7 @@ void print(char* str){                                                         /
 	uint16_t* videoMemory = (uint16_t*)0xb8000;                                // mem adress for video calls basically (ax with int 0x10)
 	for(int i = 0; str[i] != '\0'; ++i){                                       // iterate through string (str)
 		videoMemory[i] = (videoMemory[i] & 0xFF00) | str[i];                   // insert the char every 2 bytes (1st byte is color info)
-	}
+	};
 }
 
 ///////////////////
@@ -26,7 +26,7 @@ extern "C" constructor end_ctors;
 extern "C" void callConstructors(){
 	for(constructor* i = &start_ctors; i != &end_ctors; i++){                  // iterate through constructors
 		(*i)();                                                                // call constructors
-	}
+	};
 }
 
 ///////////////////
