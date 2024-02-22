@@ -4,6 +4,7 @@
 
 #include "types.h"                                                             // include types just in case
 #include "gdt.h"
+#include "port.h"
 
 ///////////////////
 // PRINTF
