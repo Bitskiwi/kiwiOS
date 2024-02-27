@@ -18,7 +18,7 @@
 .section .text
 .extern kernelMain                                                             # expect a function called kernelMain
 .extern callConstructors
-.global loader
+.global boot
 
 ###################
 # MAIN FUNCTION & STOP
@@ -31,6 +31,10 @@ boot:                                                                          #
 
 	push %eax
 	push %ebx
+
+	push %ecx
+	push %edx
+
 	call kernelMain                                                            # run the kernel
 
 _stop:                                                                         # trap the CPU
