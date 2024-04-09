@@ -4,11 +4,53 @@ kernel_main:
 	call cls
 	mov si, KERNEL_MSG
 	call outln
-	call in
+	mov si, HELP
+	call outln
+
+cmd:
+	mov si, PROMPT
+	call out
+
+	call cin
+	call cout
+	call CRLF
+
+	cmp al, 'm'
+	je message
+	
+	cmp al, 'h'
+	je help
+	
+	cmp al, 'r'
+	je reset
+	
+	cmp al, 'c'
+	je clear
+
+message:
+	mov si, HI
+	call outln
+	jmp cmd
+
+help:
+	mov si, HELP
+	call outln
+	jmp cmd
+
+reset:
+	jmp kernel_main
+
+clear:
+	call cls
+	jmp cmd
+
 
 	jmp $
 
-KERNEL_MSG: db "Kernel :)", 0
+KERNEL_MSG: db "x86 real mode Kernel", 0
+HELP: db "(m)essage: says hi, (h): says this message, (r): resets, (c): clears screen", 0
+HI: db "<kernel> hello user", 0
+PROMPT: db "<user> ", 0 
 
 CRLF:
 	pusha
