@@ -17,15 +17,20 @@ cmd:
 
 	cmp al, 'm'
 	je message
-	
+
 	cmp al, 'h'
 	je help
-	
+
 	cmp al, 'r'
 	je reset
-	
+
 	cmp al, 'c'
 	je clear
+
+	cmp al, 'f'
+	jmp cmd
+
+	jmp cmd
 
 message:
 	mov si, HI
@@ -48,7 +53,7 @@ clear:
 	jmp $
 
 KERNEL_MSG: db "x86 real mode Kernel", 0
-HELP: db "(m)essage: says hi, (h): says this message, (r): resets, (c): clears screen", 0
+HELP: db "(m)essage: says hi, (h): says this message, (r): resets, (c): clears screen, (f): fix", 0
 HI: db "<kernel> hello user", 0
 PROMPT: db "<user> ", 0 
 
