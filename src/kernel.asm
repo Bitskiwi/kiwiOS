@@ -6,31 +6,21 @@ kernel_main:                                                                   ;
 	call outln                                                                 ; print KERNEL_MSG
 	mov si, HELP                                                               ; outln params
 	call outln                                                                 ; print HELP
-	mov si, user_cmd
-	mov esi, PROMPT
-	call cmp_str
-	cmp ax, 1
-	je message
+
+	jmp cmd                                                                    ; goto cmd
 
 cmd:                                                                           ; command label
 	mov si, PROMPT                                                             ; out params
 	call out                                                                   ; print PROMPT
 
-	call cin                                                                   ; get char input
-	call cout                                                                  ; print the char from input
+	mov si, input                                                              ; get string input
+	call in
 	call CRLF                                                                  ; newline
 
-	cmp al, 'm'                                                                ; if in = m
-	je message                                                                 ; goto message
-
-	cmp al, 'h'                                                                ; if in = h
-	je help                                                                    ; goto help
-
-	cmp al, 'r'                                                                ; if in = r
-	je reset                                                                   ; goto reset
-
-	cmp al, 'c'                                                                ; if in = c
-	je clear                                                                   ; goto clear
+	mov esi, cmd_msg
+	call cmp_str
+	cmp ax, 1
+	je message
 
 	jmp cmd                                                                    ; if null : loop
 
@@ -51,6 +41,11 @@ clear:                                                                         ;
 	call cls                                                                   ; clear screen
 	jmp cmd                                                                    ; loop to cmd
 
+kernel_info:
+	mov si, KERNEL_MSG                                                         ; outln params
+	call outln                                                                 ; print KERNEL_MSG
+	jmp cmd                                                                    ; goto cmd
+
 	jmp $                                                                      ; infinite loop
 
 ; VARS
@@ -58,20 +53,23 @@ clear:                                                                         ;
 KERNEL_MSG: db "x86 real mode Kernel", 0
 HELP: db "(m)essage: says hi, (h): says this message, (r): resets, (c): clears screen, (f): fix", 0
 HI: db "<kernel> hello user", 0
-PROMPT: db "<user> ", 0
-user_cmd: db "<user> ", 0
+PROMPT: db "<!user> ", 0
+input: times 100 db 0
+cmd_msg: db "msg", 0
 
 ; FUNCTIONS
 
 ; CRLF()->
 
 CRLF:                                                                          ; CRLF label
+	pusha                                                                      ; save all registers
 	mov ah, 0x0e                                                               ; set mode
 	mov al, 0x0a                                                               ; 10h param
 	int 0x10                                                                   ; print carriage return
 	mov al, 0x0d                                                               ; 10h param
 	int 0x10                                                                   ; print line feed
 	.end:                                                                      ; end
+		popa                                                                   ; load all registers
 		ret                                                                    ; return
 
 ; cout(char:al)->
@@ -108,20 +106,27 @@ outln:                                                                         ;
 cin:                                                                           ; cin label
 	mov ah, 0x00                                                               ; set mode
 	int 0x16                                                                   ; keyboard interupt al = char
+	call cout
 	.end:                                                                      ; end
 		ret                                                                    ; return
 
-; in()
+; in(str:si)->str:si
 
 in:                                                                            ; in label
 	.loop:                                                                     ; loop
 		call cin                                                               ; get keypress
 		cmp al, 0x0d                                                           ; if al is enter
 		je .end                                                                ; jump end
-		call cout                                                              ; print al
+;		cmp al, 0x0008
+;		je .pop
+		mov bl, al                                                             ; put cin result into lower bx
+		mov bh, 0                                                              ; clear high bx
+		call str_push                                                          ; append char to str
 		jmp .loop                                                              ; jump loop
+;	.pop:
+;		call str_pop
+;		jmp .loop
 	.end:                                                                      ; end
-		call CRLF                                                              ; CRLF
 		ret                                                                    ; return
 
 ; cls()->
@@ -145,7 +150,7 @@ EOS:                                                                           ;
 	.end:                                                                      ; end
 		ret                                                                    ; return
 
-; cmp_str(str1:si str2:esi)->bool:ax
+; cmp_str(str1:si,str2:esi)->bool:ax
 
 cmp_str:                                                                       ; cmp_str label
 	.loop:                                                                     ; loop
@@ -165,7 +170,19 @@ cmp_str:                                                                       ;
 		mov ax, 0                                                              ; 0 = false
 		ret                                                                    ; return
 
-; str_append
+; str_push(str:si,char:bx)->str:si
 
-str_append:                                                                    ; str_append label
-	
+str_push:                                                                      ; str_push label
+	call EOS
+	add si, ax
+	mov [si], bx
+	.end:
+		ret
+
+;str_pop:                                                                       ; str_push label
+;	call EOS
+;	add si, ax
+;	dec si
+;	mov byte [si], 0
+;	.end:
+;		ret
